@@ -3,9 +3,10 @@ import { ArtistsService } from './artists.service';
 import { ArtistsController } from './artists.controller';
 import InMemoryArtistsStore, { ARTISTS_STORE_TOKEN } from './artists.store';
 import { TracksModule } from '../tracks/tracks.module';
+import { AlbumsModule } from '../albums/albums.module';
 
 @Module({
-  imports: [TracksModule],
+  imports: [TracksModule, AlbumsModule],
   providers: [
     ArtistsService,
     {

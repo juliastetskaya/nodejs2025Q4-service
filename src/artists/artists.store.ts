@@ -7,6 +7,8 @@ import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { TRACKS_STORE_TOKEN } from '../tracks/tracks.store';
 import { TracksStore } from '../tracks/interfaces/tracks-store.interface';
+import { ALBUMS_STORE_TOKEN } from '../albums/albums.store';
+import { AlbumsStore } from '../albums/interfaces/albums-store.interface';
 
 export const ARTISTS_STORE_TOKEN = 'ARTISTS_STORE';
 
@@ -16,11 +18,12 @@ class InMemoryArtistsStore implements ArtistsStore {
 
   constructor(
     @Inject(TRACKS_STORE_TOKEN) private readonly tracksStore: TracksStore,
+    @Inject(ALBUMS_STORE_TOKEN) private readonly albumsStore: AlbumsStore,
   ) {
     this.artists = [];
   }
 
-  getAll(): Artist[] {
+  getAllArtists(): Artist[] {
     return this.artists;
   }
 
@@ -81,6 +84,13 @@ class InMemoryArtistsStore implements ArtistsStore {
     tracks.forEach((track) => {
       if (track.artistId === id) {
         this.tracksStore.update(track.id, { ...track, artistId: null });
+      }
+    });
+
+    const albums = this.albumsStore.getAllAlbums();
+    albums.forEach((album) => {
+      if (album.artistId === id) {
+        this.albumsStore.update(album.id, { ...album, artistId: null });
       }
     });
 

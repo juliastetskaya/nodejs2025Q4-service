@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { v4 as uuidv4, validate } from 'uuid';
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
@@ -73,7 +73,7 @@ class InMemoryUsersStore implements UsersStore {
     const { oldPassword, newPassword } = data;
 
     if (oldPassword !== user.password) {
-      throw new Error('Password is incorrect');
+      throw new ForbiddenException('Password is incorrect');
     }
 
     if (user.password === newPassword) {

@@ -1,9 +1,19 @@
 import { Module } from '@nestjs/common';
 import { AlbumsService } from './albums.service';
 import { AlbumsController } from './albums.controller';
+import InMemoryAlbumsStore, { ALBUMS_STORE_TOKEN } from './albums.store';
+import { TracksModule } from '../tracks/tracks.module';
 
 @Module({
-  providers: [AlbumsService],
+  imports: [TracksModule],
+  providers: [
+    AlbumsService,
+    {
+      provide: ALBUMS_STORE_TOKEN,
+      useClass: InMemoryAlbumsStore,
+    },
+  ],
   controllers: [AlbumsController],
+  exports: [ALBUMS_STORE_TOKEN],
 })
 export class AlbumsModule {}

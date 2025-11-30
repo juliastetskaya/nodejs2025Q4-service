@@ -12,7 +12,7 @@ export class ArtistsService {
   ) {}
 
   getAll() {
-    return this.artistsStore.getAll();
+    return this.artistsStore.getAllArtists();
   }
 
   create(artist: CreateArtistDto) {
