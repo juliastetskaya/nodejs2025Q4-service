@@ -20,7 +20,7 @@ export class TracksService {
   }
 
   update(id: string, updateTrackDto: UpdateTrackDto) {
-    return this.update(id, updateTrackDto);
+    return this.tracksStore.update(id, updateTrackDto);
   }
 
   getById(id: string) {

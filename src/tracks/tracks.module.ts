@@ -12,5 +12,6 @@ import InMemoryTracksStore, { TRACKS_STORE_TOKEN } from './tracks.store';
     },
   ],
   controllers: [TracksController],
+  exports: [TRACKS_STORE_TOKEN],
 })
 export class TracksModule {}
