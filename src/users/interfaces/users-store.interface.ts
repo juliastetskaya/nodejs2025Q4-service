@@ -4,8 +4,8 @@ import type { UpdatePasswordDto } from '../dto/update-password.dto';
 
 export interface UsersStore {
   getAllUsers(): UserEntity[];
-  getUserById(id: string): UserEntity | null;
+  getUserById(id: string): UserEntity;
   create(user: CreateUserDto): UserEntity;
-  updatePassword(id: string, data: UpdatePasswordDto): UserEntity | string;
+  updatePassword(id: string, data: UpdatePasswordDto): UserEntity;
   delete(id: string): void;
 }

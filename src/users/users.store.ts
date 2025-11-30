@@ -24,7 +24,7 @@ class InMemoryUsersStore implements UsersStore {
     });
   }
 
-  getUserById(id: string): UserEntity | undefined {
+  getUserById(id: string): UserEntity {
     if (!validate(id)) {
       throw new Error('Invalid id');
     }
@@ -59,7 +59,7 @@ class InMemoryUsersStore implements UsersStore {
     };
   }
 
-  updatePassword(id: string, data: UpdatePasswordDto): UserEntity | string {
+  updatePassword(id: string, data: UpdatePasswordDto): UserEntity {
     if (!validate(id)) {
       throw new Error('Invalid id');
     }
