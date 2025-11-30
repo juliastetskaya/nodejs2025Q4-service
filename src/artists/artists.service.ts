@@ -4,11 +4,17 @@ import { ARTISTS_STORE_TOKEN } from './artists.store';
 import { ArtistsStore } from './interfaces/artists-store.interface';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
+import {
+  FAVORITES_STORE_TOKEN,
+  FavoritesStoreInterface,
+} from '../favorites/favorites.store';
 
 @Injectable()
 export class ArtistsService {
   constructor(
     @Inject(ARTISTS_STORE_TOKEN) private readonly artistsStore: ArtistsStore,
+    @Inject(FAVORITES_STORE_TOKEN)
+    private readonly favoritesStore: FavoritesStoreInterface,
   ) {}
 
   getAll() {
@@ -28,6 +34,7 @@ export class ArtistsService {
   }
 
   delete(id: string) {
+    this.favoritesStore.removeArtist(id);
     return this.artistsStore.delete(id);
   }
 }

@@ -84,8 +84,8 @@ class InMemoryUsersStore implements UsersStore {
     const newUser = {
       ...user,
       password: newPassword,
-      updatedAt: Date.now(),
       version: user.version + 1,
+      updatedAt: Date.now() + 1,
     };
 
     this.users = this.users.map((user) =>

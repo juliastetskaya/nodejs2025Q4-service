@@ -1,11 +1,12 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AlbumsService } from './albums.service';
 import { AlbumsController } from './albums.controller';
 import InMemoryAlbumsStore, { ALBUMS_STORE_TOKEN } from './albums.store';
 import { TracksModule } from '../tracks/tracks.module';
+import { FavoritesModule } from '../favorites/favorites.module';
 
 @Module({
-  imports: [TracksModule],
+  imports: [forwardRef(() => TracksModule), forwardRef(() => FavoritesModule)],
   providers: [
     AlbumsService,
     {

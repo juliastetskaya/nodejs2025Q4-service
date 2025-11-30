@@ -4,11 +4,17 @@ import { TRACKS_STORE_TOKEN } from './tracks.store';
 import { TracksStore } from './interfaces/tracks-store.interface';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
+import {
+  FAVORITES_STORE_TOKEN,
+  FavoritesStoreInterface,
+} from '../favorites/favorites.store';
 
 @Injectable()
 export class TracksService {
   constructor(
     @Inject(TRACKS_STORE_TOKEN) private readonly tracksStore: TracksStore,
+    @Inject(FAVORITES_STORE_TOKEN)
+    private readonly favoritesStore: FavoritesStoreInterface,
   ) {}
 
   getAll() {
@@ -28,6 +34,7 @@ export class TracksService {
   }
 
   delete(id: string) {
+    this.favoritesStore.removeTrack(id);
     return this.tracksStore.delete(id);
   }
 }

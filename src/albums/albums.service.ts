@@ -4,11 +4,17 @@ import { ALBUMS_STORE_TOKEN } from './albums.store';
 import { AlbumsStore } from './interfaces/albums-store.interface';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
+import {
+  FAVORITES_STORE_TOKEN,
+  FavoritesStoreInterface,
+} from '../favorites/favorites.store';
 
 @Injectable()
 export class AlbumsService {
   constructor(
     @Inject(ALBUMS_STORE_TOKEN) private readonly albumsStore: AlbumsStore,
+    @Inject(FAVORITES_STORE_TOKEN)
+    private readonly favoritesStore: FavoritesStoreInterface,
   ) {}
 
   getAll() {
@@ -28,6 +34,7 @@ export class AlbumsService {
   }
 
   delete(id: string) {
+    this.favoritesStore.removeAlbum(id);
     return this.albumsStore.delete(id);
   }
 }
