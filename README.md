@@ -18,13 +18,14 @@ Before you begin, ensure you have the following installed on your system:
 - **Node.js**: Version 22.14.0 or higher (LTS recommended)
 - **npm**: Version 8.x or higher (comes with Node.js)
 - **Git**: For cloning the repository
+- **Docker**: [Download & Install Docker](https://www.docker.com/get-started).
 
 ## Installation
 
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/juliastetskaya/nodejs2025Q4-service.git
 cd nodejs2025Q4-service
 ```
 
