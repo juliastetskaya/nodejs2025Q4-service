@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  postgres:
+    build:
+      context: ./prisma
+    container_name: nodejs2025q4-postgres
+    restart: always
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U admin -d db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

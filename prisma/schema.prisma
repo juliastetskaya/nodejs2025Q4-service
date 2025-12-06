@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String @id @default(uuid())
+  login     String @unique
+  password  String
+  version   Int    @default(1)
+  createdAt BigInt @default(0)
+  updatedAt BigInt @default(0)
+
+  @@map("users")
+}
+
+model Artist {
+  id     String  @id @default(uuid())
+  name   String
+  grammy Boolean @default(false)
+
+  albums Album[]
+  tracks Track[]
+
+  @@map("artists")
+}
+
+model Album {
+  id       String  @id @default(uuid())
+  name     String
+  year     Int
+  artistId String?
+
+  artist Artist? @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  tracks Track[]
+
+  @@index([artistId])
+  @@map("albums")
+}
+
+model Track {
+  id       String  @id @default(uuid())
+  name     String
+  artistId String?
+  albumId  String?
+  duration Int
+
+  artist Artist? @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  album  Album?  @relation(fields: [albumId], references: [id], onDelete: SetNull)
+
+  @@index([artistId])
+  @@index([albumId])
+  @@map("tracks")
+}
+
+model Favorites {
+  id      String   @id @default(uuid())
+  artists String[] @default([])
+  albums  String[] @default([])
+  tracks  String[] @default([])
+
+  @@map("favorites")
+}
