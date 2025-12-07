@@ -1,19 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { validate } from 'uuid';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 
-import {
-  FAVORITES_STORE_TOKEN,
-  FavoritesStoreInterface,
-} from './favorites.store';
-import { ARTISTS_STORE_TOKEN } from '../artists/artists.store';
-import { ArtistsStore } from '../artists/interfaces/artists-store.interface';
-import { ALBUMS_STORE_TOKEN } from '../albums/albums.store';
-import { AlbumsStore } from '../albums/interfaces/albums-store.interface';
-import { TRACKS_STORE_TOKEN } from '../tracks/tracks.store';
-import { TracksStore } from '../tracks/interfaces/tracks-store.interface';
 import { Artist } from '../artists/interfaces/artist.interface';
 import { Album } from '../albums/interfaces/album.interface';
 import { Track } from '../tracks/interfaces/track.interface';
+import { PrismaService } from '../prisma/prisma.service';
 
 export interface FavoritesResponse {
   artists: Artist[];
@@ -23,112 +13,99 @@ export interface FavoritesResponse {
 
 @Injectable()
 export class FavoritesService {
-  constructor(
-    @Inject(FAVORITES_STORE_TOKEN)
-    private readonly favoritesStore: FavoritesStoreInterface,
-    @Inject(ARTISTS_STORE_TOKEN)
-    private readonly artistsStore: ArtistsStore,
-    @Inject(ALBUMS_STORE_TOKEN)
-    private readonly albumsStore: AlbumsStore,
-    @Inject(TRACKS_STORE_TOKEN)
-    private readonly tracksStore: TracksStore,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  getAll(): FavoritesResponse {
-    const artistIds = this.favoritesStore.getArtistIds();
-    const albumIds = this.favoritesStore.getAlbumIds();
-    const trackIds = this.favoritesStore.getTrackIds();
+  async getAll(): Promise<FavoritesResponse> {
+    const albums = await this.prisma.album.findMany({
+      where: { isFavorite: true },
+    });
+    const artists = await this.prisma.artist.findMany({
+      where: { isFavorite: true },
+    });
+    const tracks = await this.prisma.track.findMany({
+      where: { isFavorite: true },
+    });
 
-    const artists = artistIds
-      .map((id) => {
-        try {
-          return this.artistsStore.getArtistById(id);
-        } catch {
-          return null;
-        }
-      })
-      .filter((artist) => artist !== null);
-
-    const albums = albumIds
-      .map((id) => {
-        try {
-          return this.albumsStore.getAlbumById(id);
-        } catch {
-          return null;
-        }
-      })
-      .filter((album) => album !== null);
-
-    const tracks = trackIds
-      .map((id) => {
-        try {
-          return this.tracksStore.getTrackById(id);
-        } catch {
-          return null;
-        }
-      })
-      .filter((track) => track !== null);
-
-    return { artists, albums, tracks };
+    return {
+      albums: this.excludeFavorite(albums) as Album[],
+      artists: this.excludeFavorite(artists) as Artist[],
+      tracks: this.excludeFavorite(tracks) as Track[],
+    };
   }
 
-  addTrack(id: string): void {
-    if (!validate(id)) {
-      throw new Error('Invalid id');
-    }
+  excludeFavorite(array: Album[] | Artist[] | Track[]) {
+    return array.map((item: Record<string, any>) => {
+      const { isFavorite, ...rest } = item;
 
-    this.tracksStore.getTrackById(id);
-    this.favoritesStore.addTrack(id);
+      return rest;
+    });
   }
 
-  removeTrack(id: string): void {
-    if (!validate(id)) {
-      throw new Error('Invalid id');
-    }
+  async addTrack(id: string): Promise<Track> {
+    try {
+      const track = await this.prisma.track.update({
+        where: { id },
+        data: { isFavorite: true },
+      });
 
-    const removed = this.favoritesStore.removeTrack(id);
-    if (!removed) {
-      throw new Error('Track is not favorite');
+      return track;
+    } catch (error) {
+      throw new UnprocessableEntityException('Track not found');
     }
   }
 
-  addAlbum(id: string): void {
-    if (!validate(id)) {
-      throw new Error('Invalid id');
-    }
-
-    this.albumsStore.getAlbumById(id);
-    this.favoritesStore.addAlbum(id);
-  }
-
-  removeAlbum(id: string): void {
-    if (!validate(id)) {
-      throw new Error('Invalid id');
-    }
-
-    const removed = this.favoritesStore.removeAlbum(id);
-    if (!removed) {
-      throw new Error('Album is not favorite');
+  async removeTrack(id: string): Promise<void> {
+    try {
+      await this.prisma.track.update({
+        where: { id },
+        data: { isFavorite: false },
+      });
+    } catch (error) {
+      throw new UnprocessableEntityException('Track not found');
     }
   }
 
-  addArtist(id: string): void {
-    if (!validate(id)) {
-      throw new Error('Invalid id');
+  async addAlbum(id: string): Promise<void> {
+    try {
+      await this.prisma.album.update({
+        where: { id },
+        data: { isFavorite: true },
+      });
+    } catch (error) {
+      throw new UnprocessableEntityException('Album not found');
     }
-
-    this.artistsStore.getArtistById(id);
-    this.favoritesStore.addArtist(id);
   }
 
-  removeArtist(id: string): void {
-    if (!validate(id)) {
-      throw new Error('Invalid id');
+  async removeAlbum(id: string): Promise<void> {
+    try {
+      await this.prisma.album.update({
+        where: { id },
+        data: { isFavorite: false },
+      });
+    } catch (error) {
+      throw new UnprocessableEntityException('Album not found');
     }
+  }
 
-    const removed = this.favoritesStore.removeArtist(id);
-    if (!removed) {
-      throw new Error('Artist is not favorite');
+  async addArtist(id: string): Promise<void> {
+    try {
+      await this.prisma.artist.update({
+        where: { id },
+        data: { isFavorite: true },
+      });
+    } catch (error) {
+      throw new UnprocessableEntityException('Artist not found');
+    }
+  }
+
+  async removeArtist(id: string): Promise<void> {
+    try {
+      await this.prisma.artist.update({
+        where: { id },
+        data: { isFavorite: false },
+      });
+    } catch (error) {
+      throw new UnprocessableEntityException('Artist not found');
     }
   }
 }

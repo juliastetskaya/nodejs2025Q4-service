@@ -9,7 +9,7 @@ A RESTful API service for managing a home music library built with NestJS. This 
 - **Album Management**: Organize albums with artist associations
 - **Track Management**: Manage individual tracks with album and artist references
 - **Favorites**: Add and remove artists, albums, and tracks to/from favorites
-- **In-Memory Storage**: Fast data access using in-memory data structures
+- **Prisma ORM**: PostgreSQL database with Prisma for type-safe database access and migrations
 
 ## Prerequisites
 
@@ -18,13 +18,14 @@ Before you begin, ensure you have the following installed on your system:
 - **Node.js**: Version 22.14.0 or higher (LTS recommended)
 - **npm**: Version 8.x or higher (comes with Node.js)
 - **Git**: For cloning the repository
+- **Docker**: [Download & Install Docker](https://www.docker.com/get-started).
 
 ## Installation
 
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/juliastetskaya/nodejs2025Q4-service.git
 cd nodejs2025Q4-service
 ```
 
@@ -54,48 +55,32 @@ JWT_SECRET_KEY=secret123123
 JWT_SECRET_REFRESH_KEY=secret123123
 TOKEN_EXPIRE_TIME=1h
 TOKEN_REFRESH_EXPIRE_TIME=24h
+
+# Postgres
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=admin
+POSTGRES_DB=db
+
+# Prisma
+DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?schema=public"
 ```
 
 ## Running the Application
 
-### Development Mode
-
 Run the application in development mode with hot-reload:
 
 ```bash
-npm run start:dev
+docker compose up
 ```
 
-The server will start at `http://localhost:4000` (or the port specified in your `.env` file).
+The application will start at `http://localhost:4000` (or the port specified in your `.env` file).
 
-### Production Mode
-
-1. Build the application:
+## Stopping the application
 
 ```bash
-npm run build
-```
-
-2. Start the production server:
-
-```bash
-npm run start:prod
-```
-
-### Debug Mode
-
-Run the application in debug mode (allows attaching a debugger):
-
-```bash
-npm run start:debug
-```
-
-### Standard Mode
-
-Run the application without hot-reload:
-
-```bash
-npm start
+docker compose down
 ```
 
 ## Testing

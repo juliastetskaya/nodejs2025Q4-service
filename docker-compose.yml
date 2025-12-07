@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    build:
+      context: ./prisma
+      dockerfile: Dockerfile
+    container_name: nodejs2025q4-postgres
+    restart: always
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U admin -d db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  nest:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nodejs2025q4-nest
+    restart: always
+    ports:
+      - ${PORT}:${PORT}
+    env_file:
+      - .env
+    volumes:
+      - nest_data:/usr/app
+      - ./src:/usr/app/src
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  nest_data:
+
+networks:
+  app-network:
+    driver: bridge

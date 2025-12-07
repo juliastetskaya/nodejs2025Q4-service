@@ -1,40 +1,53 @@
-import { Inject, Injectable } from '@nestjs/common';
-
-import { TRACKS_STORE_TOKEN } from './tracks.store';
-import { TracksStore } from './interfaces/tracks-store.interface';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
-import {
-  FAVORITES_STORE_TOKEN,
-  FavoritesStoreInterface,
-} from '../favorites/favorites.store';
+import { Track } from './interfaces/track.interface';
 
 @Injectable()
 export class TracksService {
-  constructor(
-    @Inject(TRACKS_STORE_TOKEN) private readonly tracksStore: TracksStore,
-    @Inject(FAVORITES_STORE_TOKEN)
-    private readonly favoritesStore: FavoritesStoreInterface,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  getAll() {
-    return this.tracksStore.getAllTracks();
+  async getAll(): Promise<Track[]> {
+    return await this.prisma.track.findMany();
   }
 
-  create(track: CreateTrackDto) {
-    return this.tracksStore.create(track);
+  async create(track: CreateTrackDto): Promise<Track> {
+    return await this.prisma.track.create({
+      data: { ...track },
+    });
   }
 
-  update(id: string, updateTrackDto: UpdateTrackDto) {
-    return this.tracksStore.update(id, updateTrackDto);
+  async update(id: string, updateTrackDto: UpdateTrackDto): Promise<Track> {
+    const track = await this.prisma.track.findUnique({ where: { id } });
+
+    if (!track) {
+      throw new NotFoundException('Track not found');
+    }
+
+    return await this.prisma.track.update({
+      where: { id },
+      data: { ...track, ...updateTrackDto },
+    });
   }
 
-  getById(id: string) {
-    return this.tracksStore.getTrackById(id);
+  async getById(id: string): Promise<Track> {
+    const track = await this.prisma.track.findUnique({ where: { id } });
+
+    if (!track) {
+      throw new NotFoundException('Track not found');
+    }
+
+    return track;
   }
 
-  delete(id: string) {
-    this.favoritesStore.removeTrack(id);
-    return this.tracksStore.delete(id);
+  async delete(id: string): Promise<void> {
+    const track = await this.prisma.track.findUnique({ where: { id } });
+
+    if (!track) {
+      throw new NotFoundException('Track not found');
+    }
+
+    await this.prisma.track.delete({ where: { id } });
   }
 }
