@@ -19,29 +19,29 @@ export class ArtistsController {
   constructor(private readonly artistsService: ArtistsService) {}
 
   @Get()
-  getAll() {
-    return this.artistsService.getAll();
+  async getAll() {
+    return await this.artistsService.getAll();
   }
 
   @Get(':id')
-  getById(
+  async getById(
     @Param(
       'id',
       new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST }),
     )
     id: string,
   ) {
-    return this.artistsService.getById(id);
+    return await this.artistsService.getById(id);
   }
 
   @Post()
   @HttpCode(201)
-  create(@Body() createArtistDto: CreateArtistDto) {
-    return this.artistsService.create(createArtistDto);
+  async create(@Body() createArtistDto: CreateArtistDto) {
+    return await this.artistsService.create(createArtistDto);
   }
 
   @Put(':id')
-  update(
+  async update(
     @Param(
       'id',
       new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST }),
@@ -49,18 +49,18 @@ export class ArtistsController {
     id: string,
     @Body() updateArtistDto: UpdateArtistDto,
   ) {
-    return this.artistsService.update(id, updateArtistDto);
+    return await this.artistsService.update(id, updateArtistDto);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  delete(
+  async delete(
     @Param(
       'id',
       new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST }),
     )
     id: string,
   ) {
-    return this.artistsService.delete(id);
+    return await this.artistsService.delete(id);
   }
 }

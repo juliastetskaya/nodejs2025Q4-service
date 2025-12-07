@@ -19,7 +19,7 @@ export class ArtistsService {
     });
   }
 
-  async update(id: string, updateArtistDto: UpdateArtistDto) {
+  async update(id: string, updateArtistDto: UpdateArtistDto): Promise<Artist> {
     const artist = await this.prisma.artist.findUnique({ where: { id } });
 
     if (!artist) {
@@ -32,7 +32,7 @@ export class ArtistsService {
     });
   }
 
-  async getById(id: string) {
+  async getById(id: string): Promise<Artist> {
     const artist = await this.prisma.artist.findUnique({ where: { id } });
 
     if (!artist) {
@@ -41,7 +41,7 @@ export class ArtistsService {
     return artist;
   }
 
-  async delete(id: string) {
+  async delete(id: string): Promise<void> {
     const artist = await this.prisma.artist.findUnique({ where: { id } });
 
     if (!artist) {

@@ -4,11 +4,11 @@ import {
   Delete,
   Get,
   HttpCode,
-  HttpException,
   HttpStatus,
   Param,
   Post,
   Put,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { TracksService } from './tracks.service';
 import { CreateTrackDto } from './dto/create-track.dto';
@@ -19,56 +19,48 @@ export class TracksController {
   constructor(private readonly tracksService: TracksService) {}
 
   @Get()
-  getAll() {
-    return this.tracksService.getAll();
+  async getAll() {
+    return await this.tracksService.getAll();
   }
 
   @Get(':id')
-  getById(@Param('id') id: string) {
-    try {
-      return this.tracksService.getById(id);
-    } catch (error) {
-      if (error.message === 'Invalid id') {
-        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-      }
-
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-    }
+  async getById(
+    @Param(
+      'id',
+      new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST }),
+    )
+    id: string,
+  ) {
+    return await this.tracksService.getById(id);
   }
 
   @Post()
   @HttpCode(201)
-  create(@Body() createTrackDto: CreateTrackDto) {
-    return this.tracksService.create(createTrackDto);
+  async create(@Body() createTrackDto: CreateTrackDto) {
+    return await this.tracksService.create(createTrackDto);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateTrackDto: UpdateTrackDto) {
-    try {
-      return this.tracksService.update(id, updateTrackDto);
-    } catch (error) {
-      if (error.message === 'Invalid id') {
-        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-      }
-
-      if (error.message === 'Track not found') {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }
-      throw new HttpException(error.message, HttpStatus.FORBIDDEN);
-    }
+  async update(
+    @Param(
+      'id',
+      new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST }),
+    )
+    id: string,
+    @Body() updateTrackDto: UpdateTrackDto,
+  ) {
+    return await this.tracksService.update(id, updateTrackDto);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  delete(@Param('id') id: string) {
-    try {
-      return this.tracksService.delete(id);
-    } catch (error) {
-      if (error.message === 'Invalid id') {
-        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-      }
-
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-    }
+  async delete(
+    @Param(
+      'id',
+      new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST }),
+    )
+    id: string,
+  ) {
+    return await this.tracksService.delete(id);
   }
 }
