@@ -23,7 +23,8 @@ services:
 
   nest:
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     build:
       context: .
       dockerfile: Dockerfile
@@ -34,7 +35,7 @@ services:
     env_file:
       - .env
     volumes:
-      - nest_data:/app
+      - nest_data:/usr/app
       - ./src:/usr/app/src
     networks:
       - app-network

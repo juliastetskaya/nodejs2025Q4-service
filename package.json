@@ -22,7 +22,10 @@
     "test:refresh": "cross-env TEST_MODE=auth jest --testPathPattern refresh.e2e.spec.ts --noStackTrace --runInBand",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "audit": "npm audit --audit-level=high",
+    "audit:docker:app": "docker scout cves iuliiastetskaia/nodejs2025q4-service --format only-packages --only-severity critical,high",
+    "audit:docker:db": "docker scout cves iuliiastetskaia/nodejs2025q4-service-postgres --format only-packages --only-severity critical,high"
   },
   "dependencies": {
     "@nestjs/cli": "^10.4.9",
