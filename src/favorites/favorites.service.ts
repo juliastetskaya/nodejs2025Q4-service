@@ -1,13 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { validate } from 'uuid';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 
-import {
-  FAVORITES_STORE_TOKEN,
-  FavoritesStoreInterface,
-} from './favorites.store';
 import { Artist } from '../artists/interfaces/artist.interface';
 import { Album } from '../albums/interfaces/album.interface';
 import { Track } from '../tracks/interfaces/track.interface';
+import { PrismaService } from '../prisma/prisma.service';
 
 export interface FavoritesResponse {
   artists: Artist[];
@@ -17,69 +13,99 @@ export interface FavoritesResponse {
 
 @Injectable()
 export class FavoritesService {
-  constructor(
-    @Inject(FAVORITES_STORE_TOKEN)
-    private readonly favoritesStore: FavoritesStoreInterface,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  getAll(): FavoritesResponse {
-    return { artists: [], albums: [], tracks: [] };
+  async getAll(): Promise<FavoritesResponse> {
+    const albums = await this.prisma.album.findMany({
+      where: { isFavorite: true },
+    });
+    const artists = await this.prisma.artist.findMany({
+      where: { isFavorite: true },
+    });
+    const tracks = await this.prisma.track.findMany({
+      where: { isFavorite: true },
+    });
+
+    return {
+      albums: this.excludeFavorite(albums) as Album[],
+      artists: this.excludeFavorite(artists) as Artist[],
+      tracks: this.excludeFavorite(tracks) as Track[],
+    };
   }
 
-  addTrack(id: string): void {
-    if (!validate(id)) {
-      throw new Error('Invalid id');
-    }
+  excludeFavorite(array: Album[] | Artist[] | Track[]) {
+    return array.map((item: Record<string, any>) => {
+      const { isFavorite, ...rest } = item;
 
-    this.favoritesStore.addTrack(id);
+      return rest;
+    });
   }
 
-  removeTrack(id: string): void {
-    if (!validate(id)) {
-      throw new Error('Invalid id');
-    }
+  async addTrack(id: string): Promise<Track> {
+    try {
+      const track = await this.prisma.track.update({
+        where: { id },
+        data: { isFavorite: true },
+      });
 
-    const removed = this.favoritesStore.removeTrack(id);
-    if (!removed) {
-      throw new Error('Track is not favorite');
-    }
-  }
-
-  addAlbum(id: string): void {
-    if (!validate(id)) {
-      throw new Error('Invalid id');
-    }
-
-    this.favoritesStore.addAlbum(id);
-  }
-
-  removeAlbum(id: string): void {
-    if (!validate(id)) {
-      throw new Error('Invalid id');
-    }
-
-    const removed = this.favoritesStore.removeAlbum(id);
-    if (!removed) {
-      throw new Error('Album is not favorite');
+      return track;
+    } catch (error) {
+      throw new UnprocessableEntityException('Track not found');
     }
   }
 
-  addArtist(id: string): void {
-    if (!validate(id)) {
-      throw new Error('Invalid id');
+  async removeTrack(id: string): Promise<void> {
+    try {
+      await this.prisma.track.update({
+        where: { id },
+        data: { isFavorite: false },
+      });
+    } catch (error) {
+      throw new UnprocessableEntityException('Track not found');
     }
-
-    this.favoritesStore.addArtist(id);
   }
 
-  removeArtist(id: string): void {
-    if (!validate(id)) {
-      throw new Error('Invalid id');
+  async addAlbum(id: string): Promise<void> {
+    try {
+      await this.prisma.album.update({
+        where: { id },
+        data: { isFavorite: true },
+      });
+    } catch (error) {
+      throw new UnprocessableEntityException('Album not found');
     }
+  }
 
-    const removed = this.favoritesStore.removeArtist(id);
-    if (!removed) {
-      throw new Error('Artist is not favorite');
+  async removeAlbum(id: string): Promise<void> {
+    try {
+      await this.prisma.album.update({
+        where: { id },
+        data: { isFavorite: false },
+      });
+    } catch (error) {
+      throw new UnprocessableEntityException('Album not found');
+    }
+  }
+
+  async addArtist(id: string): Promise<void> {
+    try {
+      await this.prisma.artist.update({
+        where: { id },
+        data: { isFavorite: true },
+      });
+    } catch (error) {
+      throw new UnprocessableEntityException('Artist not found');
+    }
+  }
+
+  async removeArtist(id: string): Promise<void> {
+    try {
+      await this.prisma.artist.update({
+        where: { id },
+        data: { isFavorite: false },
+      });
+    } catch (error) {
+      throw new UnprocessableEntityException('Artist not found');
     }
   }
 }

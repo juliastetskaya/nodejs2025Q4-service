@@ -32,6 +32,8 @@ model Artist {
   albums Album[]
   tracks Track[]
 
+  isFavorite Boolean? @default(false)
+
   @@map("artists")
 }
 
@@ -43,6 +45,8 @@ model Album {
 
   artist Artist? @relation(fields: [artistId], references: [id], onDelete: SetNull)
   tracks Track[]
+
+  isFavorite Boolean? @default(false)
 
   @@index([artistId])
   @@map("albums")
@@ -58,16 +62,9 @@ model Track {
   artist Artist? @relation(fields: [artistId], references: [id], onDelete: SetNull)
   album  Album?  @relation(fields: [albumId], references: [id], onDelete: SetNull)
 
+isFavorite Boolean? @default(false)
+
   @@index([artistId])
   @@index([albumId])
   @@map("tracks")
-}
-
-model Favorites {
-  id      String   @id @default(uuid())
-  artists String[] @default([])
-  albums  String[] @default([])
-  tracks  String[] @default([])
-
-  @@map("favorites")
 }
