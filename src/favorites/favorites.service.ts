@@ -7,8 +7,6 @@ import {
 } from './favorites.store';
 import { ARTISTS_STORE_TOKEN } from '../artists/artists.store';
 import { ArtistsStore } from '../artists/interfaces/artists-store.interface';
-import { ALBUMS_STORE_TOKEN } from '../albums/albums.store';
-import { AlbumsStore } from '../albums/interfaces/albums-store.interface';
 import { TRACKS_STORE_TOKEN } from '../tracks/tracks.store';
 import { TracksStore } from '../tracks/interfaces/tracks-store.interface';
 import { Artist } from '../artists/interfaces/artist.interface';
@@ -28,15 +26,12 @@ export class FavoritesService {
     private readonly favoritesStore: FavoritesStoreInterface,
     @Inject(ARTISTS_STORE_TOKEN)
     private readonly artistsStore: ArtistsStore,
-    @Inject(ALBUMS_STORE_TOKEN)
-    private readonly albumsStore: AlbumsStore,
     @Inject(TRACKS_STORE_TOKEN)
     private readonly tracksStore: TracksStore,
   ) {}
 
   getAll(): FavoritesResponse {
     const artistIds = this.favoritesStore.getArtistIds();
-    const albumIds = this.favoritesStore.getAlbumIds();
     const trackIds = this.favoritesStore.getTrackIds();
 
     const artists = artistIds
@@ -49,16 +44,6 @@ export class FavoritesService {
       })
       .filter((artist) => artist !== null);
 
-    const albums = albumIds
-      .map((id) => {
-        try {
-          return this.albumsStore.getAlbumById(id);
-        } catch {
-          return null;
-        }
-      })
-      .filter((album) => album !== null);
-
     const tracks = trackIds
       .map((id) => {
         try {
@@ -69,7 +54,7 @@ export class FavoritesService {
       })
       .filter((track) => track !== null);
 
-    return { artists, albums, tracks };
+    return { artists, albums: [], tracks };
   }
 
   addTrack(id: string): void {
@@ -97,7 +82,6 @@ export class FavoritesService {
       throw new Error('Invalid id');
     }
 
-    this.albumsStore.getAlbumById(id);
     this.favoritesStore.addAlbum(id);
   }
 
