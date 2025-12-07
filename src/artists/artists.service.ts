@@ -1,40 +1,53 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { ARTISTS_STORE_TOKEN } from './artists.store';
-import { ArtistsStore } from './interfaces/artists-store.interface';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
-import {
-  FAVORITES_STORE_TOKEN,
-  FavoritesStoreInterface,
-} from '../favorites/favorites.store';
+import { PrismaService } from '../prisma/prisma.service';
+import { Artist } from './interfaces/artist.interface';
 
 @Injectable()
 export class ArtistsService {
-  constructor(
-    @Inject(ARTISTS_STORE_TOKEN) private readonly artistsStore: ArtistsStore,
-    @Inject(FAVORITES_STORE_TOKEN)
-    private readonly favoritesStore: FavoritesStoreInterface,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  getAll() {
-    return this.artistsStore.getAllArtists();
+  async getAll(): Promise<Artist[]> {
+    return await this.prisma.artist.findMany();
   }
 
-  create(artist: CreateArtistDto) {
-    return this.artistsStore.create(artist);
+  async create(artist: CreateArtistDto): Promise<Artist> {
+    return await this.prisma.artist.create({
+      data: artist,
+    });
   }
 
-  update(id: string, updateArtistDto: UpdateArtistDto) {
-    return this.artistsStore.update(id, updateArtistDto);
+  async update(id: string, updateArtistDto: UpdateArtistDto) {
+    const artist = await this.prisma.artist.findUnique({ where: { id } });
+
+    if (!artist) {
+      throw new NotFoundException('Artist not found');
+    }
+
+    return await this.prisma.artist.update({
+      where: { id },
+      data: { ...artist, ...updateArtistDto },
+    });
   }
 
-  getById(id: string) {
-    return this.artistsStore.getArtistById(id);
+  async getById(id: string) {
+    const artist = await this.prisma.artist.findUnique({ where: { id } });
+
+    if (!artist) {
+      throw new NotFoundException('Artist not found');
+    }
+    return artist;
   }
 
-  delete(id: string) {
-    this.favoritesStore.removeArtist(id);
-    return this.artistsStore.delete(id);
+  async delete(id: string) {
+    const artist = await this.prisma.artist.findUnique({ where: { id } });
+
+    if (!artist) {
+      throw new NotFoundException('Artist not found');
+    }
+
+    await this.prisma.artist.delete({ where: { id } });
   }
 }
