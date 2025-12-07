@@ -1,16 +1,11 @@
 import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
-import InMemoryUsersStore, { USERS_STORE_TOKEN } from './users.store';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  providers: [
-    UsersService,
-    {
-      provide: USERS_STORE_TOKEN,
-      useClass: InMemoryUsersStore,
-    },
-  ],
+  imports: [PrismaModule],
+  providers: [UsersService],
   controllers: [UsersController],
 })
 export class UsersModule {}
