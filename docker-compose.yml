@@ -4,6 +4,7 @@ services:
   postgres:
     build:
       context: ./prisma
+      dockerfile: Dockerfile
     container_name: nodejs2025q4-postgres
     restart: always
     ports:
@@ -17,6 +18,31 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
+
+  nest:
+    depends_on:
+      - postgres
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nodejs2025q4-nest
+    restart: always
+    ports:
+      - ${PORT}:${PORT}
+    env_file:
+      - .env
+    volumes:
+      - nest_data:/app
+      - ./src:/usr/app/src
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
+  nest_data:
+
+networks:
+  app-network:
+    driver: bridge
