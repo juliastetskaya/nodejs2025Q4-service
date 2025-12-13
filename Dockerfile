@@ -40,6 +40,10 @@ COPY --from=builder --chown=nestjs:nodejs /usr/app/dist ./dist/
 COPY --from=builder --chown=nestjs:nodejs /usr/app/prisma ./prisma/
 COPY --chown=nestjs:nodejs package*.json ./
 
+RUN mkdir -p /usr/app/logs && \
+    chown -R nestjs:nodejs /usr/app/logs && \
+    chmod -R 755 /usr/app/logs
+
 USER nestjs
 
 EXPOSE 4000

@@ -34,15 +34,20 @@ services:
       - ${PORT}:${PORT}
     env_file:
       - .env
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-LOG}
+      - LOG_MAX_FILE_SIZE=${LOG_MAX_FILE_SIZE:-1024}
     volumes:
       - nest_data:/usr/app
       - ./src:/usr/app/src
+      - logs_data:/usr/app/logs
     networks:
       - app-network
 
 volumes:
   postgres_data:
   nest_data:
+  logs_data:
 
 networks:
   app-network:
