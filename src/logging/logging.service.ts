@@ -24,6 +24,8 @@ export class LoggingService {
 
     this.maxFileSize = parseInt(process.env.LOG_MAX_FILE_SIZE || '1024', 10);
 
+    this.addErrorListeners();
+
     this.logDir = path.join(process.cwd(), 'logs');
     try {
       if (!fs.existsSync(this.logDir)) {
@@ -183,5 +185,26 @@ export class LoggingService {
     if (this.logStream) {
       this.logStream.end();
     }
+  }
+
+  private addErrorListeners() {
+    process.on('uncaughtException', (error: Error) => {
+      this.error(
+        `Uncaught Exception: ${error.message}`,
+        error.stack,
+        'UncaughtException',
+      );
+      process.exit(1);
+    });
+
+    process.on('unhandledRejection', (reason: any) => {
+      const message = reason instanceof Error ? reason.message : String(reason);
+      const stack = reason instanceof Error ? reason.stack : undefined;
+      this.error(
+        `Unhandled Rejection: ${message}`,
+        stack,
+        'UnhandledRejection',
+      );
+    });
   }
 }
