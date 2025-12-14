@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcrypt';
 import {
   ForbiddenException,
   Injectable,
@@ -26,9 +27,15 @@ export class UsersService {
 
   async create(userData: CreateUserDto): Promise<UserEntity> {
     const timestamp = Date.now();
+    const hashedPassword = await bcrypt.hash(
+      userData.password,
+      Number(process.env.CRYPT_SALT),
+    );
+
     const user = await this.prisma.user.create({
       data: {
-        ...userData,
+        login: userData.login,
+        password: hashedPassword,
         createdAt: timestamp,
         updatedAt: timestamp,
         version: 1,
@@ -54,14 +61,21 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    if (data.oldPassword !== user.password) {
+    const isOldPasswordValid = await bcrypt.compare(
+      data.oldPassword,
+      user.password,
+    );
+
+    if (!isOldPasswordValid) {
       throw new ForbiddenException('Old Password is wrong');
     }
+
+    const hashedNewPassword = await bcrypt.hash(data.newPassword, 10);
 
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: {
-        password: data.newPassword,
+        password: hashedNewPassword,
         version: user.version + 1,
         updatedAt: Number(Date.now()),
       },
@@ -72,7 +86,7 @@ export class UsersService {
       login: updatedUser.login,
       version: updatedUser.version,
       createdAt: Number(updatedUser.createdAt),
-      updatedAt: Number(updatedUser.createdAt),
+      updatedAt: Number(updatedUser.updatedAt),
     };
   }
 
