@@ -15,8 +15,10 @@ export class LoggingService {
   private logLevel: CustomLogLevel;
   private logDir: string;
   private currentLogFile: string;
+  private currentErrorLogFile: string;
   private maxFileSize: number;
   private logStream: fs.WriteStream;
+  private errorLogStream: fs.WriteStream;
 
   constructor() {
     const envLogLevel = process.env.LOG_LEVEL?.toUpperCase() || 'LOG';
@@ -59,9 +61,13 @@ export class LoggingService {
     if (this.logStream) {
       this.logStream.end();
     }
+    if (this.errorLogStream) {
+      this.errorLogStream.end();
+    }
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     this.currentLogFile = path.join(this.logDir, `app-${timestamp}.log`);
+    this.currentErrorLogFile = path.join(this.logDir, `error-${timestamp}.log`);
 
     try {
       this.logStream = fs.createWriteStream(this.currentLogFile, {
@@ -70,6 +76,14 @@ export class LoggingService {
 
       this.logStream.on('error', (error) => {
         console.error('Log stream error:', error);
+      });
+
+      this.errorLogStream = fs.createWriteStream(this.currentErrorLogFile, {
+        flags: 'a',
+      });
+
+      this.errorLogStream.on('error', (error) => {
+        console.error('Error log stream error:', error);
       });
     } catch (error) {
       console.error('Failed to create log stream:', error);
@@ -81,7 +95,13 @@ export class LoggingService {
       const stats = fs.statSync(this.currentLogFile);
       const fileSizeInKB = stats.size / 1024;
 
-      if (fileSizeInKB >= this.maxFileSize) {
+      const errorStats = fs.statSync(this.currentErrorLogFile);
+      const errorFileSizeInKB = errorStats.size / 1024;
+
+      if (
+        fileSizeInKB >= this.maxFileSize ||
+        errorFileSizeInKB >= this.maxFileSize
+      ) {
         this.rotateLogFile();
       }
     } catch (error) {
@@ -112,9 +132,18 @@ export class LoggingService {
     console.log(formattedMessage);
 
     try {
+      this.checkFileSize();
+
       if (this.logStream && !this.logStream.destroyed) {
-        this.checkFileSize();
         this.logStream.write(formattedMessage + '\n');
+      }
+
+      if (
+        level === 'ERROR' &&
+        this.errorLogStream &&
+        !this.errorLogStream.destroyed
+      ) {
+        this.errorLogStream.write(formattedMessage + '\n');
       }
     } catch (error) {
       console.error('Failed to write to log file:', error);
@@ -184,6 +213,9 @@ export class LoggingService {
   onModuleDestroy() {
     if (this.logStream) {
       this.logStream.end();
+    }
+    if (this.errorLogStream) {
+      this.errorLogStream.end();
     }
   }
 
